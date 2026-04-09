@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Data Persistence using LocalStorage</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: Arial, sans-serif;
+    }
+
+    body {
+      background: #f4f6f9;
+      padding: 30px;
+      color: #333;
+    }
+
+    .container {
+      max-width: 900px;
+      margin: auto;
+    }
+
+    .header {
+      background: white;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+      margin-bottom: 20px;
+    }
+
+    .header h1 {
+      margin-bottom: 8px;
+      font-size: 28px;
+    }
+
+    .header p {
+      color: #666;
+    }
+
+    .task-form {
+      background: white;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+      margin-bottom: 20px;
+    }
+
+    .task-form h2 {
+      margin-bottom: 16px;
+    }
+
+    .form-group {
+      margin-bottom: 16px;
+    }
+
+    .form-group label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: bold;
+      font-size: 14px;
+    }
+
+    .form-group input,
+    .form-group textarea,
+    .form-group select {
+      width: 100%;
+      padding: 12px;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      font-size: 14px;
+      outline: none;
+    }
+
+    .form-group textarea {
+      resize: vertical;
+      min-height: 100px;
+    }
+
+    .error-message {
+      color: red;
+      font-size: 13px;
+      margin-top: 5px;
+      min-height: 16px;
+    }
+
+    .btn {
+      background: #007bff;
+      color: white;
+      border: none;
+      padding: 12px 18px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 15px;
+    }
+
+    .btn:hover {
+      background: #0056b3;
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+      margin-bottom: 20px;
+    }
+
+    .stat-card {
+      background: white;
+      padding: 18px;
+      border-radius: 12px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+    }
+
+    .stat-card h3 {
+      font-size: 15px;
+      color: #555;
+      margin-bottom: 8px;
+    }
+
+    .stat-card p {
+      font-size: 24px;
+      font-weight: bold;
+      color: #007bff;
+    }
+
+    .task-section {
+      background: white;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+    }
+
+    .task-section h2 {
+      margin-bottom: 16px;
+    }
+
+    .task-list {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 16px;
+    }
+
+    .task-card {
+      border: 1px solid #e5e7eb;
+      border-radius: 10px;
+      padding: 16px;
+      background: #fafafa;
+    }
+
+    .task-card h3 {
+      margin-bottom: 8px;
+      font-size: 18px;
+    }
+
+    .task-card p {
+      color: #666;
+      font-size: 14px;
+      line-height: 1.5;
+      margin-bottom: 12px;
+    }
+
+    .task-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .status {
+      display: inline-block;
+      padding: 6px 12px;
+      border-radius: 20px;
+      font-size: 13px;
+      font-weight: bold;
+    }
+
+    .pending {
+      background: #fff3cd;
+      color: #856404;
+    }
+
+    .completed {
+      background: #d4edda;
+      color: #155724;
+    }
+
+    .delete-btn {
+      background: #dc3545;
+      color: white;
+      border: none;
+      padding: 8px 12px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 13px;
+    }
+
+    .delete-btn:hover {
+      background: #b02a37;
+    }
+
+    .empty-message {
+      color: #666;
+      padding: 10px 0;
+    }
+
+    @media (max-width: 768px) {
+      body {
+        padding: 20px;
+      }
+
+      .stats {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <section class="header">
+      <h1>Task Storage Page</h1>
+      <p>Tasks are saved in localStorage and loaded automatically after refresh.</p>
+    </section>
+
+    <section class="task-form">
+      <h2>Add Task</h2>
+
+      <div class="form-group">
+        <label for="taskTitle">Title</label>
+        <input type="text" id="taskTitle" placeholder="Enter task title" />
+        <div class="error-message" id="titleError"></div>
+      </div>
+
+      <div class="form-group">
+        <label for="taskDescription">Description</label>
+        <textarea id="taskDescription" placeholder="Enter task description"></textarea>
+        <div class="error-message" id="descriptionError"></div>
+      </div>
+
+      <div class="form-group">
+        <label for="taskStatus">Status</label>
+        <select id="taskStatus">
+          <option value="Pending">Pending</option>
+          <option value="Completed">Completed</option>
+        </select>
+      </div>
+
+      <button class="btn" id="addTaskBtn">Add Task</button>
+    </section>
+
+    <section class="stats">
+      <div class="stat-card">
+        <h3>Total Tasks</h3>
+        <p id="totalTasks">0</p>
+      </div>
+
+      <div class="stat-card">
+        <h3>Pending Tasks</h3>
+        <p id="pendingTasks">0</p>
+      </div>
+
+      <div class="stat-card">
+        <h3>Completed Tasks</h3>
+        <p id="completedTasks">0</p>
+      </div>
+    </section>
+
+    <section class="task-section">
+      <h2>Task List</h2>
+      <div class="task-list" id="taskList"></div>
+    </section>
+  </div>
+
+  <script>
+    const taskTitle = document.getElementById("taskTitle");
+    const taskDescription = document.getElementById("taskDescription");
+    const taskStatus = document.getElementById("taskStatus");
+    const addTaskBtn = document.getElementById("addTaskBtn");
+
+    const titleError = document.getElementById("titleError");
+    const descriptionError = document.getElementById("descriptionError");
+
+    const taskList = document.getElementById("taskList");
+
+    const totalTasks = document.getElementById("totalTasks");
+    const pendingTasks = document.getElementById("pendingTasks");
+    const completedTasks = document.getElementById("completedTasks");
+
+    function getTasksFromStorage() {
+      const storedTasks = localStorage.getItem("tasks");
+      return storedTasks ? JSON.parse(storedTasks) : [];
+    }
+
+    let tasks = getTasksFromStorage();
+
+    function saveTasksToStorage() {
+      localStorage.setItem("tasks", JSON.stringify(tasks));
+    }
+
+    function updateStats() {
+      totalTasks.textContent = tasks.length;
+      pendingTasks.textContent = tasks.filter(task => task.status === "Pending").length;
+      completedTasks.textContent = tasks.filter(task => task.status === "Completed").length;
+    }
+
+    function renderTasks() {
+      taskList.innerHTML = "";
+
+      if (tasks.length === 0) {
+        taskList.innerHTML = '<p class="empty-message">No tasks found. Add your first task.</p>';
+        updateStats();
+        return;
+      }
+
+      tasks.forEach(function(task) {
+        const taskCard = document.createElement("div");
+        taskCard.classList.add("task-card");
+
+        const statusClass = task.status === "Completed" ? "completed" : "pending";
+
+        taskCard.innerHTML = `
+          <h3>${task.title}</h3>
+          <p>${task.description}</p>
+          <div class="task-footer">
+            <span class="status ${statusClass}">${task.status}</span>
+            <button class="delete-btn" onclick="deleteTask(${task.id})">Delete</button>
+          </div>
+        `;
+
+        taskList.appendChild(taskCard);
+      });
+
+      updateStats();
+    }
+
+    function deleteTask(id) {
+      tasks = tasks.filter(function(task) {
+        return task.id !== id;
+      });
+
+      saveTasksToStorage();
+      renderTasks();
+    }
+
+    function clearForm() {
+      taskTitle.value = "";
+      taskDescription.value = "";
+      taskStatus.value = "Pending";
+      titleError.textContent = "";
+      descriptionError.textContent = "";
+    }
+
+    addTaskBtn.addEventListener("click", function() {
+      const titleValue = taskTitle.value.trim();
+      const descriptionValue = taskDescription.value.trim();
+      const statusValue = taskStatus.value;
+
+      titleError.textContent = "";
+      descriptionError.textContent = "";
+
+      let isValid = true;
+
+      if (titleValue === "") {
+        titleError.textContent = "Title is required.";
+        isValid = false;
+      }
+
+      if (descriptionValue === "") {
+        descriptionError.textContent = "Description is required.";
+        isValid = false;
+      }
+
+      if (!isValid) {
+        return;
+      }
+
+      const newTask = {
+        id: Date.now(),
+        title: titleValue,
+        description: descriptionValue,
+        status: statusValue
+      };
+
+      tasks.push(newTask);
+      saveTasksToStorage();
+      renderTasks();
+      clearForm();
+    });
+
+    renderTasks();
+  </script>
+</body>
+</html>
